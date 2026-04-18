@@ -339,7 +339,8 @@ func cactusPrefill(
     _ model: CactusModelT,
     _ messagesJson: String,
     _ optionsJson: String?,
-    _ toolsJson: String?
+    _ toolsJson: String?,
+    _ pcmData: Data? = nil
 ) throws -> String
 ```
 
@@ -351,7 +352,8 @@ func cactusComplete(
     _ messagesJson: String,
     _ optionsJson: String?,
     _ toolsJson: String?,
-    _ callback: ((String, UInt32) -> Void)?
+    _ callback: ((String, UInt32) -> Void)?,
+    _ pcmData: Data? = nil
 ) throws -> String
 ```
 

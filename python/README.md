@@ -86,7 +86,8 @@ result_json = cactus_complete(
     messages_json: str,              # JSON array of {role, content}
     options_json: str | None,        # optional inference options
     tools_json: str | None,          # optional tool definitions
-    callback: Callable[[str, int], None] | None   # streaming token callback
+    callback: Callable[[str, int], None] | None,  # streaming token callback
+    pcm_data: list[int] | None = None              # optional raw audio bytes
 ) -> str
 ```
 
@@ -131,7 +132,8 @@ cactus_prefill(
     model: int,
     messages_json: str,              # JSON array of {role, content}
     options_json: str | None,        # optional inference options
-    tools_json: str | None           # optional tool definitions
+    tools_json: str | None,          # optional tool definitions
+    pcm_data: list[int] | None = None              # optional raw audio bytes
 ) -> None
 ```
 

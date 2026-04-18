@@ -324,7 +324,8 @@ fun cactusPrefill(
     model: Long,
     messagesJson: String,
     optionsJson: String?,
-    toolsJson: String?
+    toolsJson: String?,
+    pcmData: ByteArray? = null
 ): String
 ```
 
@@ -336,7 +337,8 @@ fun cactusComplete(
     messagesJson: String,
     optionsJson: String?,
     toolsJson: String?,
-    callback: CactusTokenCallback?
+    callback: CactusTokenCallback?,
+    pcmData: ByteArray? = null
 ): String
 ```
 

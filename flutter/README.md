@@ -315,6 +315,7 @@ String cactusPrefill(
   String messagesJson,
   String? optionsJson,
   String? toolsJson,
+  {Uint8List? pcmData}
 )
 ```
 
@@ -327,6 +328,7 @@ String cactusComplete(
   String? optionsJson,
   String? toolsJson,
   void Function(String token, int tokenId)? callback,
+  {Uint8List? pcmData}
 )
 ```
 
