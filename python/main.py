@@ -1,8 +1,8 @@
 from src.downloads import ensure_model
 from src.cactus import (
-   cactus_init,
-   cactus_complete,
+    cactus_init,
    cactus_destroy,
+    cactus_transcribe,
 )
 import json
 import subprocess
@@ -38,14 +38,48 @@ with wave.open(str(audio_path), "rb") as w:
    pcm = w.readframes(w.getnframes())
 
 
-llm_weights = ensure_model("Cactus-Compute/gemma-4-E2B-it")
+llm_weights = ensure_model("Cactus-Compute/gemma-4-E4B-it")
 llm = cactus_init(str(llm_weights), None, False)
-messages = json.dumps([{"role": "user", "content": "Transcribe the audio."}])
-options = json.dumps({"max_tokens": 512, "temperature": 0.0})
-result = json.loads(cactus_complete(llm, messages, options, None, None, pcm_data=pcm))
-cactus_destroy(llm)
+options = json.dumps({"max_tokens": 16384, "temperature": 0.0})
+
+SAMPLE_RATE = 16000
+BYTES_PER_SAMPLE = 2
+CHUNK_SECONDS = 30
+CHUNK_BYTES = SAMPLE_RATE * BYTES_PER_SAMPLE * CHUNK_SECONDS
+CONTEXT_WORDS = 50
+
+BASE_PROMPT = "Transcribe the audio."
 
 
-if not result.get("success", True) or result.get("error"):
-   print("Error:", result.get("error"))
-print("Reply:", result.get("response", ""))
+def build_prompt(prior_text: str) -> str:
+    if not prior_text:
+        return BASE_PROMPT
+    tail = " ".join(prior_text.split()[-CONTEXT_WORDS:])
+    return (
+        f"Continue transcribing. Previous context: \"{tail}\". "
+        f"Transcribe only the new audio that follows, without repeating the context."
+    )
+
+
+transcripts = []
+try:
+    for offset in range(0, len(pcm), CHUNK_BYTES):
+        chunk = pcm[offset:offset + CHUNK_BYTES]
+        if len(chunk) < SAMPLE_RATE * BYTES_PER_SAMPLE:
+            break
+        start_sec = offset // (SAMPLE_RATE * BYTES_PER_SAMPLE)
+        prompt = build_prompt(" ".join(transcripts))
+        print(f"Transcribing chunk starting at {start_sec}s ({len(chunk)} bytes)...")
+        result = json.loads(cactus_transcribe(
+            llm, None, prompt, options, None, chunk))
+        if not result.get("success", True) or result.get("error"):
+            print(f"  Error at {start_sec}s:", result.get("error"))
+            continue
+        piece = result.get("response", result.get("text", "")).strip()
+        if piece:
+            transcripts.append(piece)
+finally:
+    cactus_destroy(llm)
+
+full_text = " ".join(transcripts)
+print("Reply:", full_text)
